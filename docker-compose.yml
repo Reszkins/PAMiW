@@ -1,0 +1,51 @@
+version: '3.4'
+
+services:
+  postgresql_database:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=InpostDatabase
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin@pgadmin.org
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    volumes:
+      - "pgadmin:/root/.pgadmin"
+
+  inpostapi:
+    image: inpostapi
+    build:
+      context: .
+      dockerfile: InpostApp/Dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      - postgresql_database
+
+  inpostclientapp:
+    image: inpostclientapp
+    build:
+      dockerfile: ClientApp/InpostClientApp/Dockerfile
+    ports:
+      - "4040:80"
+    volumes:
+      - "angular:/usr/src/app"
+    depends_on:
+      - inpostapi
+
+volumes:
+    database-data: 
+    pgadmin:
+    angular:
